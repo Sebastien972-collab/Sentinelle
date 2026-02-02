@@ -1,10 +1,3 @@
-//
-//  Mood.swift
-//  Sentinelle
-//
-//  Created by Sebby on 04/11/2024.
-//
-
 import Foundation
 import SwiftUI
 
@@ -14,79 +7,85 @@ enum MoodType: String, CaseIterable, Hashable, Codable {
     case motivated = "Motivé"
     case calm = "Calme"
     case neutral = "Neutre"
-    case stressed = "Stressant"
+    case stressed = "Stressé"
     case sad = "Triste"
     case depressed = "Déprimé"
     case angry = "Énervé"
     case tired = "Fatigué"
     case confused = "Confus"
     
-    func getMood() -> Mood {
+    // Accès rapide au modèle Mood
+    var info: Mood {
         Mood(type: self)
     }
 }
+
 struct Mood: Hashable, Equatable {
-    var type: MoodType
-    //let intensity: Int  // Échelle de 1 à 5, 5 étant l'intensité maximale.
-    var icon: String
-    var color: Color
+    let type: MoodType
     
-    init(type: MoodType) {
-        self.type = type
-       // self.intensity = intensity
-        
-        // Définir l’icône et la couleur en fonction du type d'humeur
+    // Propriétés calculées (Plus propre et performant que l'init manuel)
+    var icon: String {
         switch type {
-        case .jubilant:
-            icon = "🌞"
-            color = .yellow
-        case .happy:
-            icon = "🌿"
-            color = .green
-        case .motivated:
-            icon = "🔥"
-            color = .orange
-        case .calm:
-            icon = "🌊"
-            color = .blue
-        case .stressed:
-            icon = "⚡"
-            color = .orange
-        case .sad:
-            icon = "🌧"
-            color = .blue.opacity(0.6)
-        case .depressed:
-            icon = "💧"
-            color = .blue.opacity(0.8)
-        case .angry:
-            icon = "😡"
-            color = .red
-        case .tired:
-            icon = "😴"
-            color = .gray
-        case .confused:
-            icon = "❓"
-            color = .purple
-        case .neutral:
-            icon = "😐"
-            color = .secondary
+        case .jubilant: return "🌞"
+        case .happy:    return "🌿"
+        case .motivated: return "🔥"
+        case .calm:     return "🌊"
+        case .neutral:  return "😐"
+        case .stressed: return "⚡️"
+        case .sad:      return "🌧️"
+        case .depressed: return "💧"
+        case .angry:    return "💢"
+        case .tired:    return "😴"
+        case .confused: return "❓"
         }
     }
     
-    static func getMood(_ moodToGet: String) -> Mood {
-        for mood in MoodType.allCases  {
-            if moodToGet == mood.rawValue {
-                return Mood(type: mood)
+    // Gradient Liquid Glass pour chaque Mood
+    var gradient: LinearGradient {
+        let colors: [Color] = {
+            switch type {
+            case .jubilant:  return [.yellow, .orange]
+            case .happy:     return [.green, .mint]
+            case .motivated: return [.orange, .red]
+            case .calm:      return [.blue, .cyan]
+            case .neutral:   return [.gray, .secondary]
+            case .stressed:  return [.purple, .orange]
+            case .sad:       return [.blue, .indigo]
+            case .depressed: return [.indigo, .black]
+            case .angry:     return [.red, .black]
+            case .tired:     return [.gray, .blue.opacity(0.3)]
+            case .confused:  return [.purple, .indigo]
             }
+        }()
+        return LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+    
+    // Couleur principale (fallback)
+    var color: Color {
+        switch type {
+        case .jubilant: return .yellow
+        case .motivated: return .orange
+        case .calm: return .blue
+        case .angry: return .red
+        case .happy: return .green
+        default: return .secondary
         }
-        return Mood(type: .neutral)
+    }
+
+    // Recherche de Mood optimisée
+    static func getMood(_ rawValue: String) -> Mood {
+        let type = MoodType.allCases.first { $0.rawValue == rawValue } ?? .neutral
+        return Mood(type: type)
     }
 }
 
-struct MoodFrequency: Identifiable , Equatable{
+// Modèle pour les graphiques (Charts)
+struct MoodFrequency: Identifiable, Equatable {
     let id = UUID()
-    let mood: MoodType
-    let frequency: Double
+    let moodType: MoodType
+    let frequency: Int // Utiliser Int pour des comptes réels d'entrées
     
-    
+    // Pour l'affichage dans les graphiques
+    var label: String { moodType.rawValue }
+    var icon: String { moodType.info.icon }
 }

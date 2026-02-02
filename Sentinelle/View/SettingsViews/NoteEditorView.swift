@@ -17,11 +17,10 @@ struct NoteEditorView: View {
     @Environment(\.modelContext) private var modelContext
     @ObservedObject var journalManager: JournalManager
     @Environment(\.dismiss) private var dismiss
-    
-    // États pour la gestion des photos
+    @State private var mood: Mood = .init(type: .neutral)
     @State private var selectedItems = [PhotosPickerItem]()
     @State private var selectedImagesData = [Data]()
-    
+    @State private var moodViewIsPresented: Bool = false
     @FocusState private var focusedField: Field?
     enum Field {
         case title, text
@@ -59,7 +58,11 @@ struct NoteEditorView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     HStack(spacing: 20) {
-                        Button(action: { dismiss() }) {
+                        Button(action: {
+                            journalManager.journal.dailyMood = mood.type.rawValue
+                            journalManager.updateJournals(modelContext: modelContext)
+                            dismiss()
+                        }) {
                             Image(systemName: "arrow.uturn.backward")
                         }
                         
@@ -108,7 +111,12 @@ struct NoteEditorView: View {
                 Button(action: {}) {
                     Image(systemName: "paperplane.fill").rotationEffect(.degrees(45))
                 }
-                Button(action: {}) { Image(systemName: "line.3.horizontal.decrease.circle") }
+                Button {
+                    moodViewIsPresented.toggle()
+                } label: {
+                    Text(mood.icon)
+                }
+
             }
             .font(.system(size: 20))
             .foregroundColor(.primary)
@@ -121,6 +129,9 @@ struct NoteEditorView: View {
                 .shadow(color: .black.opacity(0.1), radius: 5)
         )
         .padding(.bottom, 10)
+        .sheet(isPresented: $moodViewIsPresented) {
+            MoodSelector(mood: $mood)
+        }
     }
     
     @ViewBuilder

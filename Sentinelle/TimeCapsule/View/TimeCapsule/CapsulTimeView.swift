@@ -12,7 +12,6 @@ struct CapsulTimeView: View {
     @State private var selectedDate = Date()
     @State private var isMessageSaved = false
     @FocusState private var isFocused: Bool
-    @State private var buttonScale: CGFloat = 1.0 // Animation
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @StateObject private var capsuleTimeManager = TimeCapsuleManager.shared
@@ -20,105 +19,146 @@ struct CapsulTimeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                // Fond immersif
                 SunsetGradientView()
-                ScrollView {
-                    VStack {
-                        // Titre et explication de la fonctionnalité
-                        Text("Capsule Temporelle")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.indigo)
-                            .padding()
-                        Text("Écrivez un message pour votre futur vous. Choisissez une date et laissez la capsule vous surprendre lorsque vous l’ouvrirez.")
-                            .font(.body)
-                            .foregroundColor(.gray)
-                            .padding(.bottom, 20)
-                            .padding([.leading, .trailing])
-                        
-                        // Champ de texte pour le message
-                        TextEditor(text: $message)
-                            .frame(height: 200)
-                            .padding()
-                            .background(RoundedRectangle(cornerRadius: 10).stroke(Color.indigo, lineWidth: 2))
-                            .padding(.horizontal)
-                            .focused($isFocused)
-                        
-                        // Sélecteur de date
-                        DatePicker("Choisir une date d’ouverture", selection: $selectedDate, in: Date()..., displayedComponents: .date)
-                            .datePickerStyle(GraphicalDatePickerStyle())
-                            .padding(.top)
-                            .padding(.horizontal)
-                        
-                        Spacer()
-                        
-                        // Bouton pour sauvegarder le message
-                        Button(action: {
-                            // Démarrer l'animation
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5, blendDuration: 0.5)) {
-                                buttonScale = 0.8 // Le bouton rétrécit
-                                isMessageSaved = true
-                            }
-                            // Sauvegarder la capsule
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                capsuleTimeManager.addCapsule(message: message, openDate: selectedDate, modelContext: modelContext)
-                                dismiss()
-                            }
-                            
-                            
-                        }) {
-                            HStack {
-                                Image(systemName: "clock.arrow.circlepath.fill")
-                                    .font(.title)
-                                Text("Envoyer dans la Capsule")
-                                    .fontWeight(.bold)
-                                    .font(.headline)
-                            }
-                            .padding()
-                            .foregroundColor(.white)
-                            .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .cornerRadius(12)
-                            .shadow(radius: 10)
-                            .scaleEffect(buttonScale) // Appliqu
-                        }
-                        .padding(.bottom)
-                        
-                        // Message de confirmation une fois la capsule sauvegardée
-                        if isMessageSaved {
-                            Text("Votre message a été envoyé dans la capsule !")
-                                .foregroundColor(.green)
-                                .fontWeight(.semibold)
-                                .padding()
-                        }
+                    .ignoresSafeArea()
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 25) {
+                        headerSection
+                        writingArea
+                        datePickerSection
+                        Spacer(minLength: 30)
+                        sendButton
                     }
                     .padding()
-                    .toolbar {
-                        //                        ToolbarItem(placement: .topBarLeading) {
-                        //                            Button("Annuler") {
-                        //                                dismiss()
-                        //                            }
-                        //                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                guard isFocused else { return dismiss() }
-                                isFocused.toggle()
-                            } label: {
-                                Text("OK")
-                                    .bold()
-                            }
-
-                            
-                        }
-                        
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Annuler") { dismiss() }
+                        .foregroundStyle(.white)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if isFocused {
+                        Button("OK") { isFocused = false }
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
                     }
                 }
             }
         }
-        }
+    }
     
-    // Fonction pour sauvegarder la capsule (implémentation fictive)
-    func saveCapsule() {
-        // Code pour sauvegarder la capsule dans la base de données ou un stockage local
-        print("Message enregistré : \(message) pour la date : \(selectedDate)")
+    // MARK: - Sous-Vues (UX Components)
+    
+    private var headerSection: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "clock.arrow.2.circlepath")
+                .font(.system(size: 40))
+                .foregroundStyle(.white)
+                .symbolEffect(.pulse)
+            
+            Text("Capsule Temporelle")
+                .font(.system(.largeTitle, design: .serif, weight: .bold))
+                .foregroundStyle(.white)
+            
+            Text("Écrivez à votre futur vous.\nCe message restera scellé jusqu'à la date choisie.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white.opacity(0.8))
+                .padding(.horizontal)
+        }
+        .padding(.top, 10)
+    }
+    
+    private var writingArea: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Image(systemName: "square.and.pencil")
+                Text("Votre message")
+            }
+            .font(.caption)
+            .fontWeight(.bold)
+            .foregroundStyle(.white.opacity(0.7))
+            .padding(.leading, 10)
+            
+            TextEditor(text: $message)
+                .scrollContentBackground(.hidden) // Cache le fond blanc par défaut
+                .frame(height: 180)
+                .padding()
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.3), lineWidth: 1)
+                )
+                .focused($isFocused)
+                .foregroundStyle(.white)
+        }
+    }
+    
+    private var datePickerSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "calendar.badge.clock")
+                Text("Date de réouverture")
+            }
+            .font(.caption)
+            .fontWeight(.bold)
+            .foregroundStyle(.white.opacity(0.7))
+            .padding(.leading, 10)
+            
+            DatePicker("", selection: $selectedDate, in: Date()..., displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .accentColor(.indigo)
+                .padding(10)
+                .background(.ultraThinMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                )
+        }
+    }
+    
+    private var sendButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                isMessageSaved = true
+                capsuleTimeManager.addCapsule(message: message, openDate: selectedDate, modelContext: modelContext)
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                dismiss()
+            }
+        } label: {
+            HStack(spacing: 15) {
+                if isMessageSaved {
+                    ProgressView()
+                        .tint(.white)
+                    Text("Scellage en cours...")
+                } else {
+                    Image(systemName: "lock.fill")
+                    Text("Sceller la Capsule")
+                }
+            }
+            .font(.headline)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 60)
+            .background(
+                LinearGradient(colors: [Color.indigo, Color.purple.opacity(0.8)],
+                               startPoint: .leading, endPoint: .trailing)
+            )
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+            .padding(.horizontal, 40)
+        }
+        .disabled(message.isEmpty || isMessageSaved)
+        .opacity(message.isEmpty ? 0.6 : 1.0)
     }
 }
 

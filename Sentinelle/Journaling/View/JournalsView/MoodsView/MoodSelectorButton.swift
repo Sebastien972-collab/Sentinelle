@@ -17,9 +17,9 @@ struct MoodSelectorButton: View {
             Text(selectedMood.icon)
                 .clipShape(Circle())
         }
-//        .sheet(isPresented: $isPressed) {
-//            MoodSelector(selectedMood: $selectedMood)
-//        }
+        .sheet(isPresented: $isPressed) {
+            MoodSelector(mood: $selectedMood)
+        }
         
 
     }

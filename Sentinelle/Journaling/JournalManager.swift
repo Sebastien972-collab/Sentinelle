@@ -36,8 +36,10 @@ class JournalManager: ObservableObject {
     }
     
     
-    func updateJournals(_ journal: Journal, modelContext: ModelContext) {
-       
+    func updateJournals(modelContext: ModelContext) {
+        guard !journal.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                !journal.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                !journal.imageData.isEmpty else { return }
         do {
             let fetchDescriptor = FetchDescriptor<Journal>()
             let results = try modelContext.fetch(fetchDescriptor)

@@ -6,120 +6,168 @@
 //
 
 import SwiftUI
-import Charts // SwitchArt Charts importé
-
+import Charts
 
 struct StatisticsView: View {
     var journals: [Journal]
+    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("Analysez vos habitudes et votre progression.")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                
-                StatisticsCardView(title: "Mes entrées", color: .customBlue) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Continuer à tenir votre journal pour voir les changements")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                        Divider()
-                        Text("\(journals.count) entrée\(journals.count > 1 ? "s" : "")")
-                            .font(.title)
-                            .bold()
-                            .foregroundColor(.white)
-                            .padding(.top)
-                    }
-                }
-                // Section : Répartition des humeurs
-                VStack {
-                    StatisticsCardView(title: "Répartition des humeurs", color: .customBlue) {
-                        Chart(journals.moodFrequency(), id: \.0) { mood, count in
-                            SectorMark(
-                                angle: .value("Fréquence", count),
-                                innerRadius: .ratio(0.5),
-                                outerRadius: .ratio(1.0)
-                            )
-                            .foregroundStyle(by: .value("Humeur", mood))
+        ZStack {
+            // Fond immersif
+            SunsetGradientView().ignoresSafeArea()
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 25) {
+                    headerSection
+                    
+                    // Grille de chiffres clés (High-level insights)
+                    keyMetricsGrid
+                    
+                    // Graphiques détaillés
+                    VStack(spacing: 20) {
+                        // Section Humeurs
+                        StatisticsCardView(title: "Équilibre émotionnel", subtitle: "Répartition de vos humeurs") {
+                            Chart(journals.moodFrequency(), id: \.0) { mood, count in
+                                SectorMark(
+                                    angle: .value("Fréquence", count),
+                                    innerRadius: .ratio(0.65),
+                                    angularInset: 2
+                                )
+                                .cornerRadius(5)
+                                .foregroundStyle(by: .value("Humeur", mood))
+                            }
+                            .frame(height: 220)
+                            .chartLegend(position: .bottom, spacing: 20)
                         }
-                        .chartLegend(.visible)
                         
-                    }
-                    .frame(height: 250)
-                    StatisticsCardView(title: "Répartition des humeurs", color: .customBlue) {
-                        HumeurFréquenciesView(journals: journals)
-                            .frame(height: 200)
-                    }
-                }
-                
-
-                // Section : Entrées par mois
-                HStack(content: {
-                    StatisticsCardView(title: "Entrées par mois", color: .customBlue) {
-                        Chart(journals.entriesPerMonth(), id: \.0) { month, count in
-                            BarMark(
-                                x: .value("Mois", month),
-                                y: .value("Entrées", count)
-                            )
-                            .foregroundStyle(.blue.gradient)
-                        }
-                        .chartXAxis {
-                            AxisMarks { value in
-                                AxisValueLabel()
+                        // Section Activité
+                        StatisticsCardView(title: "Rythme d'écriture", subtitle: "Entrées cumulées par mois") {
+                            Chart(journals.entriesPerMonth(), id: \.0) { month, count in
+                                BarMark(
+                                    x: .value("Mois", month),
+                                    y: .value("Entrées", count)
+                                )
+                                .foregroundStyle(.blue.gradient)
+                                .cornerRadius(6)
+                            }
+                            .frame(height: 180)
+                            .chartXAxis {
+                                AxisMarks(values: .automatic) { _ in
+                                    AxisValueLabel().font(.caption2)
+                                }
                             }
                         }
-                    }
-                    .frame(height: 200)
-                    // Section : Mots écrits quotidiennement
-                    StatisticsCardView(title: "Mots écrits quotidiennement", color: .customBlue) {
-                        Chart(journals.wordsPerDay(), id: \.0) { date, words in
-                            LineMark(
-                                x: .value("Date", date),
-                                y: .value("Mots", words)
-                            )
-                            .interpolationMethod(.catmullRom)
-                            .foregroundStyle(.white.gradient)
-                        }
                         
+                        // Section Intensité
+                        StatisticsCardView(title: "Flux de pensée", subtitle: "Mots écrits quotidiennement") {
+                            Chart(journals.wordsPerDay(), id: \.0) { date, words in
+                                AreaMark(
+                                    x: .value("Date", date),
+                                    y: .value("Mots", words)
+                                )
+                                .interpolationMethod(.catmullRom)
+                                .foregroundStyle(LinearGradient(colors: [.blue.opacity(0.5), .clear], startPoint: .top, endPoint: .bottom))
+                                
+                                LineMark(
+                                    x: .value("Date", date),
+                                    y: .value("Mots", words)
+                                )
+                                .interpolationMethod(.catmullRom)
+                                .lineStyle(StrokeStyle(lineWidth: 3))
+                                .foregroundStyle(.blue)
+                            }
+                            .frame(height: 180)
+                        }
                     }
-                    .frame(height: 200)
-                })
-                
-                .navigationTitle(Text("Statistiques"))
+                    .padding(.bottom, 30)
+                }
+                .padding()
             }
-            .padding()
+        }
+        .navigationTitle("Analyses")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    // MARK: - Subviews
+
+    private var headerSection: some View {
+        VStack(spacing: 5) {
+            Text("Votre voyage intérieur")
+                .font(.system(.title2, design: .serif, weight: .bold))
+            Text("Découvrez les schémas de vos pensées.")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .multilineTextAlignment(.center)
+        .padding(.top, 10)
+    }
+
+    private var keyMetricsGrid: some View {
+        HStack(spacing: 15) {
+            MetricTile(title: "Total", value: "\(journals.count)", unit: "entrées", icon: "books.vertical.fill")
+            MetricTile(title: "Série", value: "12", unit: "jours", icon: "flame.fill")
         }
     }
 }
 
-// Composant pour les cartes statistiques
+// MARK: - UI Components Optimisés
+
+struct MetricTile: View {
+    let title: String
+    let value: String
+    let unit: String
+    let icon: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(.blue)
+                Text(title).font(.caption).fontWeight(.bold).foregroundColor(.secondary)
+            }
+            HStack(alignment: .lastTextBaseline, spacing: 4) {
+                Text(value).font(.system(.title, design: .rounded)).bold()
+                Text(unit).font(.caption2).foregroundColor(.secondary)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.ultraThinMaterial)
+        .cornerRadius(20)
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.2), lineWidth: 0.5))
+    }
+}
+
 struct StatisticsCardView<Content: View>: View {
     let title: String
-    let color: Color
+    let subtitle: String
     let content: Content
 
-    init(title: String, color: Color, @ViewBuilder content: () -> Content) {
+    init(title: String, subtitle: String, @ViewBuilder content: () -> Content) {
         self.title = title
-        self.color = color
+        self.subtitle = subtitle
         self.content = content()
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.horizontal)
-                .padding(.top)
+        VStack(alignment: .leading, spacing: 15) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                Text(subtitle)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 5)
+            
             content
-                .padding(.horizontal)
-            Spacer()
         }
-        .frame(maxWidth: .infinity)
-        .background(color.gradient)
-        .cornerRadius(15)
-        .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
+        .padding()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).stroke(.white.opacity(0.15), lineWidth: 0.5))
+        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
     }
 }
 #Preview {

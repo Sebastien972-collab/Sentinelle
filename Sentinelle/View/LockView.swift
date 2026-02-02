@@ -1,7 +1,15 @@
+//
+//  LockView.swift
+//  Sentinelle
+//
+//  Created by Sébastien DAGUIN on 02/02/2026.
+//
+
+
 import SwiftUI
 
 struct LockView: View {
-    @ObservedObject var authentication: AuthenticationManager // Assure-toi que c'est le bon nom de classe
+    @ObservedObject var authentication: LocalAuthenticationManager
     @State private var animateIcon: Bool = false
     
     // Couleur adaptative liquide

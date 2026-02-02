@@ -10,57 +10,135 @@ import SwiftUI
 struct CapsuleDetailView: View {
     @StateObject var capsuleManager: TimeCapsuleManager = .shared
     @Bindable var capsule: TimeCapsule
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 30) {
-                // Capsule Information
-                Group {
+        ZStack {
+            // 1. Fond immersif cohérent avec l'application
+            SunsetGradientView().ignoresSafeArea()
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 30) {
+                    
+                    // 2. Icône d'état dynamique
+                    statusHeader
+                        .padding(.top, 40)
+                    
+                    // 3. Contenu de la capsule
                     if Date() >= capsule.openDate {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Capsule créée le \(capsule.creationDate, style: .date)")
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                            Divider()
-                            Text(capsule.message)
-                                .font(.body)
-                                .foregroundColor(.primary)
-                                .padding(.bottom, 10)
-                                .lineSpacing(5)
-                        }
-                        .onAppear() {
-                            capsule.isOpened = true
-                        }
-                        // Action Button
-                        Button(action: {
-                            withAnimation {
-                                capsule.isOpened = false
-                            }
-                        }) {
-                            Text("Marquer comme non lue")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.blue)
-                        .padding(.top, 10)
-                        .accessibilityLabel("Bouton pour marquer la capsule comme ouverte")
+                        openedMessageView
                     } else {
-                        Text("Cette capsule sera disponible le \(capsule.openDate, style: .date).")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                            .padding()
-                            .multilineTextAlignment(.center)
-                            .accessibilityLabel("Date d'ouverture prévue : \(capsule.openDate, style: .date)")
+                        lockedCountdownView
                     }
+                    
+                    Spacer(minLength: 50)
                 }
-                .padding()
+                .padding(20)
+            }
+        }
+        .navigationTitle("Capsule")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    // Action de partage ou option
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+            }
+        }
+    }
+
+    // MARK: - Subviews
+
+    private var statusHeader: some View {
+        VStack(spacing: 12) {
+            Image(systemName: Date() >= capsule.openDate ? "envelope.open.fill" : "lock.shield.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(Date() >= capsule.openDate ? .green : .white)
+                .symbolEffect(.bounce, value: capsule.isOpened)
+            
+            Text(Date() >= capsule.openDate ? "Message du passé" : "Capsule scellée")
+                .font(.system(.title2, design: .serif, weight: .bold))
+                .foregroundStyle(.white)
+        }
+    }
+
+    private var openedMessageView: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("CRÉÉE LE")
+                        .font(.caption2).bold().foregroundStyle(.secondary)
+                    Text(capsule.creationDate, style: .date)
+                        .font(.subheadline).bold()
+                }
                 Spacer()
+                Image(systemName: "quote.opening")
+                    .font(.title).foregroundStyle(.blue.opacity(0.3))
             }
             
-            .font(.system(size: 17, weight: .regular, design: .serif))
-            .navigationTitle("Détails de la Capsule")
-            .padding(.top)
+            Divider()
+            
+            Text(capsule.message)
+                .font(.system(.body, design: .serif))
+                .lineSpacing(8)
+                .foregroundStyle(.primary)
+            
+            Divider()
+            
+            Button {
+                withAnimation { capsule.isOpened = false }
+                dismiss()
+            } label: {
+                Text("Refermer pour plus tard")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .clipShape(Capsule())
+            }
+            .padding(.top, 10)
         }
-        .background(Color(UIColor.systemGroupedBackground).edgesIgnoringSafeArea(.all))
+        .padding(25)
+        .background(Color(UIColor.systemBackground).opacity(0.85)) // Couleur adaptative liquide
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .onAppear {
+            capsule.isOpened = true
+        }
+    }
+
+    private var lockedCountdownView: some View {
+        VStack(spacing: 20) {
+            Text("Patience...")
+                .font(.headline)
+                .foregroundStyle(.white)
+            
+            Text("Ce message a été écrit pour votre futur vous. Il ne pourra être révélé que le :")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white.opacity(0.7))
+            
+            Text(capsule.openDate, style: .date)
+                .font(.system(size: 24, weight: .bold, design: .serif))
+                .padding()
+                .background(.white.opacity(0.1))
+                .clipShape(Capsule())
+                .foregroundStyle(.white)
+            
+            // Illustration d'attente
+            Image(systemName: "hourglass.badge.plus")
+                .font(.largeTitle)
+                .foregroundStyle(.white.opacity(0.3))
+                .symbolEffect(.pulse)
+        }
+        .padding(30)
+        .background(.ultraThinMaterial.opacity(0.2)) // Très léger pour l'effet mystère
+        .clipShape(RoundedRectangle(cornerRadius: 28))
+        .overlay(
+            RoundedRectangle(cornerRadius: 28)
+                .stroke(.white.opacity(0.2), lineWidth: 1)
+        )
     }
 }
 

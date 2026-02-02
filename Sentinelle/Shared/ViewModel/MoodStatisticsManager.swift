@@ -42,7 +42,7 @@ class MoodStatisticsManager {
         var moodsFrequecies: [MoodFrequency] = []
         for frequecy in frequecies {
             if frequecy.value > 0 {
-                moodsFrequecies.append(MoodFrequency(mood: frequecy.key, frequency: Double(frequecy.value)))
+                moodsFrequecies.append(MoodFrequency(moodType: frequecy.key, frequency: Int(Double(frequecy.value))))
                 
             }
         }

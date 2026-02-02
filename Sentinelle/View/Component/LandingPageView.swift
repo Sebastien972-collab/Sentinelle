@@ -9,106 +9,162 @@ import SwiftUI
 
 struct LandingPageView: View {
     @Binding var isPresented: Bool
+    
+    // On utilise une couleur adaptative pour le look Liquid Glass
+    private var cardColor: Color {
+        Color(uiColor: .systemBackground).opacity(0.8)
+    }
+    
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Header Section
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Pourquoi utiliser un journal d'émotions ?")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .multilineTextAlignment(.leading)
-                        .padding(.bottom, 10)
+        ZStack {
+            // Fond immersif
+            SunsetGradientView().ignoresSafeArea()
+            
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 30) {
                     
-                    Text("Découvrez comment l'écriture peut transformer votre bien-être émotionnel.")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                }
-                .padding()
-                
-                // Benefits Section
-                VStack(alignment: .leading, spacing: 15) {
-                    BenefitView(title: "Comprendre et explorer ses émotions", description: "Un journal d’émotions permet d'identifier clairement ce que vous ressentez au quotidien.", quote: "L'écriture est la peinture de la voix.", author: "Voltaire")
-                    
-                    BenefitView(title: "Réduire le stress et l'anxiété", description: "Prendre le temps de noter vos pensées et émotions peut vous aider à prendre du recul face à des situations stressantes.", quote: "Écrire est un moyen de parler sans être interrompu.", author: "Jules Renard")
-                    
-                    BenefitView(title: "Améliorer votre santé mentale", description: "En suivant régulièrement vos émotions, vous pouvez repérer des schémas ou tendances.", quote: "La santé mentale est une priorité, pas une option.", author: "")
-                    
-                    BenefitView(title: "Renforcer votre intelligence émotionnelle", description: "Être à l'écoute de vos émotions est essentiel pour développer votre intelligence émotionnelle.", quote: "Connais-toi toi-même.", author: "Socrate")
-                    
-                    BenefitView(title: "Favoriser la gratitude et les moments positifs", description: "Un journal d’émotions vous encourage à remarquer les aspects positifs de votre vie.", quote: "Ce n'est pas le bonheur qui nous rend reconnaissants, c'est la gratitude qui nous rend heureux.", author: "David Steindl-Rast")
-                }
-                .padding()
-                
-                // Call-to-Action Section
-                VStack(spacing: 15) {
-                    Text("Comment Sentinelle vous aide")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .multilineTextAlignment(.center)
-                    
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("• Enregistrer facilement vos émotions.")
-                        Text("• Accéder à des suggestions et outils pour mieux gérer votre bien-être.")
-                        Text("• Suivre votre évolution grâce à des visualisations et rapports personnalisés.")
-                        Text("• Faire partie d'une communauté engagée dans l’amélioration du bien-être mental.")
+                    // HEADER : ACCROCHE ÉMOTIONNELLE
+                    VStack(spacing: 12) {
+                        Text("Pourquoi utiliser un journal d'émotions ?")
+                            .font(.system(.largeTitle, design: .serif, weight: .bold))
+                            .multilineTextAlignment(.center)
+                        
+                        Text("Découvrez comment l'écriture peut transformer votre bien-être émotionnel.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                     }
-                    .font(.body)
-                    .foregroundColor(.secondary)
+                    .padding(.top, 40)
+                    
+                    // SECTION : BÉNÉFICES (Cartes Expert)
+                    VStack(spacing: 16) {
+                        BenefitCard(
+                            icon: "brain.head.profile",
+                            title: "Explorer ses émotions",
+                            description: "Identifiez clairement vos schémas de pensée au quotidien.",
+                            quote: "L'écriture est la peinture de la voix.",
+                            author: "Voltaire"
+                        )
+                        
+                        BenefitCard(
+                            icon: "leaf.fill",
+                            title: "Réduire le stress",
+                            description: "Prendre du recul face aux situations stressantes par les mots.",
+                            quote: "Écrire est un moyen de parler sans être interrompu.",
+                            author: "Jules Renard"
+                        )
+                        
+                        BenefitCard(
+                            icon: "sparkles",
+                            title: "Cultiver la gratitude",
+                            description: "Remarquez les aspects positifs qui illuminent vos journées.",
+                            quote: "La gratitude rend heureux.",
+                            author: "David Steindl-Rast"
+                        )
+                    }
                     .padding(.horizontal)
                     
+                    // SECTION : FONCTIONNALITÉS SENTINELLE
+                    VStack(spacing: 20) {
+                        Text("L'approche Sentinelle")
+                            .font(.system(.title2, design: .serif, weight: .bold))
+                        
+                        VStack(alignment: .leading, spacing: 15) {
+                            FeatureRow(icon: "bolt.fill", text: "Enregistrement ultra-rapide des émotions.")
+                            FeatureRow(icon: "chart.pie.fill", text: "Visualisations et rapports personnalisés.")
+                            FeatureRow(icon: "person.2.fill", text: "Une communauté bienveillante et engagée.")
+                        }
+                        .padding(.horizontal)
+                    }
+                    .padding()
+                    .background(cardColor)
+                    .clipShape(RoundedRectangle(cornerRadius: 24))
+                    .padding(.horizontal)
+                    
+                    // CTA : BOUTON D'ACTION
                     Button(action: {
-                        // Add action for starting the app
-                        isPresented = false
+                        withAnimation { isPresented = false }
                     }) {
-                        Text("Commencez votre parcours dès aujourd'hui")
-                            .fontWeight(.bold)
+                        Text("Commencer mon parcours")
+                            .font(.headline)
                             .foregroundColor(.white)
-                            .padding()
                             .frame(maxWidth: .infinity)
-                            .background(LinearGradient(gradient: Gradient(colors: [Color.blue, Color.purple]), startPoint: .leading, endPoint: .trailing))
-                            .cornerRadius(12)
+                            .padding(.vertical, 18)
+                            .background(
+                                LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
+                            )
+                            .clipShape(Capsule())
+                            .shadow(color: .purple.opacity(0.3), radius: 10, x: 0, y: 5)
                     }
-                    .padding(.horizontal)
+                    .padding(.horizontal, 30)
+                    .padding(.top, 20)
+                    
+                    Spacer(minLength: 50)
                 }
-                .padding()
             }
-            .padding()
         }
     }
 }
 
-struct BenefitView: View {
+// MARK: - Subviews
+
+struct BenefitCard: View {
+    let icon: String
     let title: String
     let description: String
     let quote: String
     let author: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.title3)
-                .fontWeight(.semibold)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(.blue)
+                Text(title)
+                    .font(.headline)
+            }
             
             Text(description)
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
             
-            HStack {
-                Text("\"" + quote + "\"")
+            VStack(alignment: .trailing, spacing: 4) {
+                Text("\"\(quote)\"")
+                    .font(.system(.caption, design: .serif))
                     .italic()
-                    .font(.subheadline)
-                    .foregroundColor(.blue)
-                Spacer()
-                Text(author)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.blue.opacity(0.8))
+                
+                Text("— \(author)")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
             }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.top, 5)
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 3)
+        .padding(20)
+        .background(Color(uiColor: .systemBackground).opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(.white.opacity(0.2), lineWidth: 0.5)
+        )
+    }
+}
+
+struct FeatureRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(.purple)
+                .frame(width: 24)
+            Text(text)
+                .font(.subheadline)
+        }
     }
 }
 
