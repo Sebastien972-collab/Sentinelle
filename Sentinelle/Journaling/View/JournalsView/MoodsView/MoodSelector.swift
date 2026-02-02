@@ -68,7 +68,6 @@ struct MoodSelector: View {
             }
             .padding(.bottom, 25)
         }
-        .background(cardColor)
         .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 30, style: .continuous)

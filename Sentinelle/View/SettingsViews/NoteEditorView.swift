@@ -106,17 +106,17 @@ struct NoteEditorView: View {
                                  loadSelectedItems()
                              }
                 
-                Button(action: {}) { Image(systemName: "camera") }
-                Button(action: {}) { Image(systemName: "waveform") }
-                Button(action: {}) {
-                    Image(systemName: "paperplane.fill").rotationEffect(.degrees(45))
-                }
+                //                Button(action: {}) { Image(systemName: "camera") }
+                //                Button(action: {}) { Image(systemName: "waveform") }
+                //                Button(action: {}) {
+                //                    Image(systemName: "paperplane.fill").rotationEffect(.degrees(45))
+                //                }
                 Button {
                     moodViewIsPresented.toggle()
                 } label: {
                     Text(mood.icon)
                 }
-
+                
             }
             .font(.system(size: 20))
             .foregroundColor(.primary)
@@ -131,6 +131,8 @@ struct NoteEditorView: View {
         .padding(.bottom, 10)
         .sheet(isPresented: $moodViewIsPresented) {
             MoodSelector(mood: $mood)
+                .presentationDragIndicator(.hidden)
+                .presentationDetents([.fraction(0.3)])
         }
     }
     
